@@ -2,35 +2,68 @@ const button = document.getElementById('btn');
 const tasksWrapper = document.getElementById('tasks');
 
 
-const tasks = [];
 
-button.addEventListener('click', ()=>{
-    tasksWrapper.innerHTML="";
-    const input = document.getElementById('task').value;
-    document.getElementById('task').value = "";
+let tasks = JSON.parse(localStorage.getItem("TASKS")) || [];
 
-    const task = {
-        taskTitle: input,
-        isDone: false
-    }
+const onWrapperClick = (task) => {
+  const filteredTasks = tasks.filter((filterTask) => {
+    return filterTask.taskTitle !== task.taskTitle;
+  });
+  tasksWrapper.innerHTML = "";
+  addTasksToScreen(filteredTasks);
+  localStorage.setItem("TASKS", JSON.stringify(filteredTasks));
+  tasks = filteredTasks;
+};
 
-    tasks.push(task)
+const onCheckboxClick = (event, task) => {
+  const index = tasks.findIndex((value) => value.taskTitle === task.taskTitle);
+  tasks[index].isDone = !tasks[index].isDone;
+  localStorage.setItem("TASKS", JSON.stringify(tasks));
+  event.stopPropagation();
+};
 
+const addTaskToScreen = (task) => {
+  const wrapper = document.createElement("div");
+  wrapper.setAttribute("class", "task-wrapper");
+  wrapper.innerHTML = "<div>" + task.taskTitle + "</div>";
 
-    tasks.forEach((task)=>{
+  wrapper.addEventListener("click", (e) => {
+    onWrapperClick(task);
+  });
 
-        const wrapper = document.createElement('div');
-        wrapper.setAttribute('class', 'task-wrapper');
-        wrapper.innerHTML = `<div> ${task.taskTitle} </div>`;
-        
-        const checkbox = document.createElement('input');
-        checkbox.setAttribute('type', 'checkbox');
+  const checkbox = document.createElement("input");
+  checkbox.setAttribute("type", "checkbox");
 
-        wrapper.appendChild(checkbox);
+  task.isDone && checkbox.setAttribute("checked", "");
 
-        tasksWrapper.appendChild(wrapper)
+  checkbox.addEventListener("click", (event) => {
+    onCheckboxClick(event, task);
+  });
 
-    })
+  wrapper.appendChild(checkbox);
 
-    console.log(tasks);
-})
+  tasksWrapper.appendChild(wrapper);
+};
+
+const addTasksToScreen = (screenTasks) => {
+  screenTasks.forEach((task) => {
+    addTaskToScreen(task);
+  });
+};
+
+addTasksToScreen(tasks);
+
+button.addEventListener("click", () => {
+  tasksWrapper.innerHTML = "";
+  const input = document.getElementById("task").value;
+  document.getElementById("task").value = "";
+
+  const task = {
+    taskTitle: input,
+    isDone: false,
+  };
+  tasks.push(task);
+  addTasksToScreen(tasks);
+  console.log(tasks);
+  localStorage.setItem("TASKS", JSON.stringify(tasks));
+});
